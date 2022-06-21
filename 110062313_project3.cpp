@@ -8,207 +8,283 @@
 #include <vector>
 #include <set>
 
+#define top 2
+
 using namespace std;
 
 enum SPOT_STATE {
     EMPTY = 0,
     BLACK = 1,
-    WHITE = 2
+    WHITE = 2,
+    TMP_B = 3,
+    TMP_W = 4
 };
 
-int player;
+int player,opponent;
 const int SIZE = 15;
 std::array<std::array<int, SIZE>, SIZE> board;
+int countN;
+int K[4]={1,0,1,1};
+int T[4]={1,1,0,-1};
+pair<int ,int> play;
 
-struct Point
-{
-	int x, y;
-	Point() : Point(0,0) {}
-	Point(int x, int y) : x{x}, y{y} {}
-	bool operator==(const Point &p) const{
-		return (x==p.x && y==p.y);
-	}
-	bool operator!=(const Point &p) const{
-		return (x!=p.x || y!=p.y);
-	}
-	Point operator+(const Point &p) const{
-		return Point(x+p.x, y+p.y);
-	}
-	Point operator-(const Point &p) const{
-		return Point(x-p.x, y-p.y);
-	}
-};
+int get_h(){
 
-class State
-{
-	private:
-		std::array<std::array<int, SIZE>, SIZE> Board;
-		int h;
-	
-	public:
-		State() : h(0) {}
-		State(const std::array<std::array<int, SIZE>, SIZE> &board) : h(0){
-			Board = board;
-		}
-		
-		State(const State &S) : h(S.h){
-			Board = S.Board;
-		}
-		
-		void put_chess(Point &p, int Player){
-			Board[p.x][p.y] = Player;
-		}
-		
-		vector<Point> get_valid_point() const{
-			vector<Point> valid_points;
-			for(int i=0;i<SIZE;i++){
-				for(int j=0;j<SIZE;j++){
-					if(Board[i][j]!=0) continue;
-					else valid_points.push_back(Point(i,j));
-				}
-			}
-			return valid_points;
-		}		
-		
-		int get_h(){
-			//h = rand();
-			for(int i=0;i<SIZE;i++){
-				for(int j=0;j<SIZE;j++){
-					if(Board[i][j]==player){
-						if(j+1<SIZE && Board[i][j+1]==player){
-							if(j+2<SIZE && Board[i][j+2]==player){
-								h++;
-								if(j+3<SIZE && Board[i][j+3]==player){
-									h++;
-									if(j+4<SIZE && Board[i][j+4]==player){
-										h+=10;
-									}
-								}
-							}
-						}
+    int x,y,k,t;
+    int count;
+    int stuck;             //檢查xoooo這類被夾住的
+    int value;
+    for( int i=0; i<SIZE; i++){
+        for( int j=0; j<SIZE; j++){
+                            //玩家value
+            if( board[i][j] == player+2 || board[i][j] == player ){         //player+2為玩家假設會下的棋
+                for(int q=0; q<4; q++){
+                        k=K[q];       //向量
+                        t=T[q];       //向量
+                        x=i,y=j;
+                        count=1;
+                        stuck=0;
+                        x+=k;
+                        y+=t;
 
-						if(i-1>0 && j-1>0 && Board[i-1][j+1]==player){
-							if(i-2>0 && j-2>0 && Board[i-2][j+2]==player){
-								h++;
-								if(i-3>0 && j-3>0 && Board[i-3][j+3]==player){
-									h++;
-									if(i-4>0 && j-4>0 && Board[i-4][j+4]==player){
-										h+=10;
-									}
-								}
-							}							
-						}
-						if(i+1<SIZE && Board[i+1][j]==player){
-							if(i+2<SIZE && Board[i+2][j]==player){
-								h++;
-								if(i+3<SIZE && Board[i+3][j]==player){
-									h++;
-									if(i+4<SIZE && Board[i+4][j]==player){
-										h+=10;
-									}
-								}
-							}							
-						}
-						if(i+1<SIZE && j+1<SIZE && Board[i+1][j+1]==player){
-							if(i+2<SIZE && j+2<SIZE && Board[i+2][j+2]==player){
-								h++;
-								if(i+3<SIZE && j+3<SIZE && Board[i+3][j+3]==player){
-									h++;
-									if(i+4<SIZE && j+4<SIZE && Board[i+4][j+4]==player){
-										h+=10;
-									}
-								}
-							}							
-						}
-					}
-					else if(Board[i][j]== 3-player){
-						if(j+1<SIZE && Board[i][j+1]== 3-player){
-							if(j+2<SIZE && Board[i][j+2]== 3-player){
-								h--;
-								if(j+3<SIZE && Board[i][j+3]== 3-player){
-									h--;
-									if(j+4<SIZE && Board[i][j+4]== 3-player){
-										h-=10;
-									}
-								}
-							}
-						}
-						if(i-1>0 && j-1>0 && Board[i-1][j+1]== 3-player){
-							if(i-2>0 && j-2>0 && Board[i-2][j+2]== 3-player){
-								h--;
-								if(i-3>0 && j-3>0 && Board[i-3][j+3]== 3-player){
-									h--;
-									if(i-4>0 && j-4>0 && Board[i-4][j+4]== 3-player){
-										h-=10;
-									}
-								}
-							}							
-						}
-						if(i+1<SIZE && Board[i+1][j]== 3-player){
-							if(i+2<SIZE && Board[i+2][j]== 3-player){
-								h--;
-								if(i+3<SIZE && Board[i+3][j]== 3-player){
-									h--;
-									if(i+4<SIZE && Board[i+4][j]== 3-player){
-										h-=10;
-									}
-								}
-							}							
-						}
-						if(i+1<SIZE && j+1<SIZE && Board[i+1][j+1]== 3-player){
-							if(i+2<SIZE && j+2<SIZE && Board[i+2][j+2]== 3-player){
-								h--;
-								if(i+3<SIZE && j+3<SIZE && Board[i+3][j+3]== 3-player){
-									h--;
-									if(i+4<SIZE && j+4<SIZE && Board[i+4][j+4]== 3-player){
-										h-=10;
-									}
-								}
-							}							
-						}
-						
-					}
-					else continue;
-				}
-			}
-			return h;
-		}
-		
-		int set_h(){
-			return h;
-		}
-		
-};
+                        //計算該棋向量上有無己方棋
+                        while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == player || board[x][y] == player+2){
+                                count++;
+                                x+=k;
+                                y+=t;
+                            }else if( board[x][y] == opponent || board[x][y] == opponent+2){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
 
-int alphabeta(State node, int depth, int alpha, int beta, int Player) {
-	if(depth==0)
-		return node.get_h();
-	
-	vector<Point> children = node.get_valid_point();	
-	
-	if(player == Player){
-		int value = INT_MIN;
-		for(auto i: children){
-			State child = node;
-			value = std::max(value, alphabeta(child, depth - 1, alpha, beta, 3-Player));
-			alpha = std::max(alpha, value);
-			if(alpha>=beta)
-				break;
-		}
-		return value;
-	}
-	else{
-		int value = INT_MAX;
-		for(auto i: children){
-			State child = node;
-			value = std::min(value, alphabeta(child, depth - 1, alpha, beta, player));
-			beta = std::min(beta, value);
-			if(beta<=alpha)
-				break;
-		}
-		return value;
-	}
+                        //計算己方棋有無被包住
+                        if(count<5){
+                            x=i,y=j;
+                            x-=k;
+                            y-=t;
+                            
+                            
+                            while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == player || board[x][y] == player+2){
+                                count++;
+                                x-=k;
+                                y-=t;
+                            }else if( board[x][y] == opponent || board[x][y] == opponent+2){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
+                        }
+
+
+
+                        // 得到value
+                        if(stuck==2){
+                            if(count>=5){
+                                value+=50;
+                            }
+                        }
+                        else if(stuck==1){
+                            if(count==3){
+                                value += 3;
+                            }if(count==4){
+                                value += 5;
+                            }if(count>=5){
+                                value += 100;
+                            }
+                        }else{
+                            if(count==3){
+                                value +=10;
+                            }else if(count==4){
+                                value += 75;
+                            }else if(count>=5){
+                                value += 100;
+                            }             
+                        }
+                    
+                }    
+
+            }              // 對手value
+            else if( board[i][j] == opponent+2 ||board[i][j] == opponent){
+                for(int q=0; q<4; q++){
+                        k=K[q];
+                        t=T[q];
+                        x=i,y=j;
+                        count=1;
+                        stuck=0;
+                        x+=k;
+                        y+=t;
+                        while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == opponent || board[x][y] == opponent+2){
+                                count++;
+                                x+=k;
+                                y+=t;
+                            }else if( board[x][y] == player || board[x][y] == player+2){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
+
+                        if(count<5){
+                            x=i,y=j;
+                            x-=k;
+                            y-=t;
+                            
+                            
+                            while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == opponent || board[x][y] == opponent+2){
+                                count++;
+                                x-=k;
+                                y-=t;
+                            }else if( board[x][y] == player || board[x][y] == player+2){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
+                        }
+                        if(stuck==2){
+                            if(count==3) value+=5;
+                            else if(count==4) value+=5;
+                            else if(count>=5) value+=125;
+                        }
+                        else if(stuck==1){
+                            if(count==3){
+                                value -=0;
+                            }if(count==4){
+                                value -=0;
+                            }if(count>=5){
+                                value -=125;
+                            }
+                        }
+                        else{
+                            if(count==3){
+                                value -=30;
+                            }else if(count==4){
+                                value -= 125;
+                            }else if(count==5){
+                                value -= 150;
+                            }             
+                        }
+                    
+                }    
+            }
+        }
+    }
+    return value;
 }
+
+
+
+int alphabeta(int depth, int alpha, int beta, bool maximizingPlayer,set<pair<int,int>> cur, int c){
+	if(depth == 0)      return get_h();
+
+	if(maximizingPlayer){
+		int value = INT_MIN;
+			
+		for(auto i:cur){
+            board[i.first][i.second] = player+2;
+
+            set<pair<int,int>> nxt(cur);
+
+            for(int rw = i.first-1; rw<=i.first+1; rw++){
+                for(int cl = i.second-1; cl<=i.second+1; cl++){
+                    if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                    }
+                }
+            }
+            nxt.erase(i);
+            int tmp = alphabeta( depth-1, alpha, beta, false, nxt, c+1);
+            if(tmp>value){
+                value = tmp;
+                if(depth==top)  play = make_pair(i.first,i.second);
+            }
+
+
+            alpha = max(alpha,value);
+            board[i.first][i.second] = EMPTY;
+            if(alpha>=beta)break;
+        }
+        
+        return value;
+	}
+    else{
+        int value = INT_MAX;
+        for(auto i:cur){
+            board[i.first][i.second] = opponent+2;
+
+            set<pair<int,int>> nxt(cur);
+            for(int rw = i.first-1; rw<=i.first+1; rw++){
+                for(int cl = i.second-1; cl<=i.second+1; cl++){
+                    if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                    }
+                }
+            }
+            nxt.erase(i);
+            value = min(value,alphabeta( depth-1, alpha, beta, true, nxt, c+1));
+            beta = min(beta,value);
+            board[i.first][i.second] = EMPTY;
+            if(beta<=alpha)break;
+        }
+        return value;
+
+    }
+} 
+
+
+
+void write_valid_spot(std::ofstream& fout){
+    
+    countN=0;
+	if(player == BLACK)  opponent = WHITE;
+	else opponent = BLACK;
+    set<pair<int,int>> nxt;
+    for(int i = 0; i<SIZE; i++){
+		for(int j = 0; j<SIZE; j++){
+			if(board[i][j] != EMPTY ){
+                if(board[i][j] == player )  countN++;
+                for(int rw = i-1; rw<=i+1; rw++){
+                    for(int cl = j-1; cl<=j+1; cl++){
+                        if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                        }
+
+                    }
+                }
+            }
+		}
+	}
+    
+    if(nxt.empty()){
+        fout << rand()%15 << " " << rand()%15 << std::endl;   
+        fout.flush();
+    }/*else if(countN<=1){
+        int k;
+        for(int i = 0; i<SIZE; i++){
+			for(int j = 0; j<SIZE; j++){
+            	if(board[i][j] == opponent) {
+                	k=j;
+                	break;
+            	}
+        	}
+        }
+        if( k >= 7)
+        fout <<7 << " " << 6 << std::endl;
+        else
+        fout <<7 << " " << 8 << std::endl;
+        fout.flush();
+    }*/
+    else{
+        alphabeta(top,INT_MIN,INT_MAX,true,nxt,countN);
+        fout << play.first << " " << play.second << std::endl; 
+        fout.flush();
+    }
+	
+}
+
 
 void read_board(std::ifstream& fin) {
     fin >> player;
@@ -218,43 +294,6 @@ void read_board(std::ifstream& fin) {
         }
     }
 }
-
-void write_valid_spot(std::ofstream& fout) {
-    srand(time(NULL));
-    /*
-    int x, y;
-    // Keep updating the output until getting killed.
-    while(true) {
-        // Choose a random spot.
-        int x = (rand() % SIZE);
-        int y = (rand() % SIZE);
-        if (board[x][y] == EMPTY) {
-            fout << x << " " << y << std::endl;
-            // Remember to flush the output to ensure the last action is written to file.
-            fout.flush();
-        }
-    }*/
-    int H;
-    int h;
-    State c(board);
-    //H = c.get_h();
-    H = INT_MIN;
-    vector<Point> initial_points = c.get_valid_point();
-    for(auto i: initial_points){
-    	State n = c;
-    	n.put_chess(i,player);
-    	h = alphabeta(n, 2, INT_MIN, INT_MAX, player);
-    	if(h > H){
-    		//fout << h << endl;
-            fout << i.x << " " << i.y << std::endl;
-            // Remember to flush the output to ensure the last action is written to file.
-            fout.flush();
-			H = h;		
-		}
-	}	 
-}
-
-
 
 
 int main(int, char** argv) {

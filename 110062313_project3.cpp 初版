@@ -32,22 +32,22 @@ int get_h(){
 
     int x,y,k,t;
     int count;
-    int stuck;             //ÀË¬dxoooo³oÃş³Q§¨¦íªº
+    int stuck;             //æª¢æŸ¥xooooé€™é¡è¢«å¤¾ä½çš„
     int value;
     for( int i=0; i<SIZE; i++){
         for( int j=0; j<SIZE; j++){
-                            //ª±®avalue
-            if( board[i][j] == player+2 || board[i][j] == player ){         //player+2¬°ª±®a°²³]·|¤Uªº´Ñ
+                            //ç©å®¶value
+            if( board[i][j] == player+2 || board[i][j] == player ){         //player+2ç‚ºç©å®¶å‡è¨­æœƒä¸‹çš„æ£‹
                 for(int q=0; q<4; q++){
-                        k=K[q];       //¦V¶q
-                        t=T[q];       //¦V¶q
+                        k=K[q];       //å‘é‡
+                        t=T[q];       //å‘é‡
                         x=i,y=j;
                         count=1;
                         stuck=0;
                         x+=k;
                         y+=t;
 
-                        //­pºâ¸Ó´Ñ¦V¶q¤W¦³µL¤v¤è´Ñ
+                        //è¨ˆç®—è©²æ£‹å‘é‡ä¸Šæœ‰ç„¡å·±æ–¹æ£‹
                         while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
                             if( board[x][y] == player || board[x][y] == player+2){
                                 count++;
@@ -59,7 +59,7 @@ int get_h(){
                             }else break;
                         }
 
-                        //­pºâ¤v¤è´Ñ¦³µL³Q¥]¦í
+                        //è¨ˆç®—å·±æ–¹æ£‹æœ‰ç„¡è¢«åŒ…ä½
                         if(count<5){
                             x=i,y=j;
                             x-=k;
@@ -80,7 +80,7 @@ int get_h(){
 
 
 
-                        // ±o¨ìvalue
+                        // å¾—åˆ°value
                         if(stuck==2){
                             if(count>=5){
                                 value+=50;
@@ -106,7 +106,7 @@ int get_h(){
                     
                 }    
 
-            }              // ¹ï¤âvalue
+            }              // å°æ‰‹value
             else if( board[i][j] == opponent+2 ||board[i][j] == opponent){
                 for(int q=0; q<4; q++){
                         k=K[q];

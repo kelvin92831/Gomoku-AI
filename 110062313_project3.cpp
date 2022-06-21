@@ -1,0 +1,284 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
+#include <array>
+#include <limits.h>
+#include <algorithm>
+#include <vector>
+#include <set>
+
+#define top 2
+
+using namespace std;
+
+enum SPOT_STATE {
+    EMPTY = 0,
+    BLACK = 1,
+    WHITE = 2,
+};
+
+int player,opponent;
+const int SIZE = 15;
+std::array<std::array<int, SIZE>, SIZE> board;
+int countN;
+int Vx[4]={1,0,1,1}; //x向量 
+int Vy[4]={1,1,0,-1}; //y向量 
+pair<int ,int> play;
+
+int get_h(){
+
+    int x,y;
+	int I,J; //方向 
+    int count; //數量 
+    int stuck; //block       
+    int h;
+    
+    for( int i=0; i<SIZE; i++){
+        for( int j=0; j<SIZE; j++){
+        	
+            if( board[i][j] == player ){  //己方         
+                for(int q=0; q<4; q++){
+                    	I=Vx[q];       
+                        J=Vy[q];       
+                        x=i,y=j;
+                        count=1;
+                        stuck=0;
+
+                        //計算同一方向上的己方棋
+						x+=I;
+                        y+=J; 
+                        while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == player){
+                                count++;
+                                x+=I;
+                                y+=J;
+                            }else if( board[x][y] == opponent ){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
+
+                        //計算對面方向上的己方棋 
+                        if(count<5){
+                            x=i,y=j;
+                            x-=I;
+                            y-=J;
+    
+                            while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            	if( board[x][y] == player){
+                                	count++;
+                                	x-=I;
+                                	y-=J;
+                            	}else if( board[x][y] == opponent){
+                                	stuck++;
+                                	break;
+                            	}else break;
+                        	}
+                        }
+
+                        // 計算h 
+                        if(stuck==2){
+                            if(count>=5)
+                                h += 50;                        
+                        }                    
+                        else if(stuck==1){
+                            if(count==3)
+                                h += 3;
+                            else if(count==4)
+                                h += 5;
+                            else if(count>=5)
+                                h += 100;                        
+                        }                        
+						else{
+                            if(count==3)
+                                h +=10;
+                            else if(count==4)
+                                h += 75;
+                        	else if(count>=5)
+                                h += 100;                                     
+                        }                
+                }    
+            }
+			              
+            else if(board[i][j] == opponent){  //對手
+                for(int q=0; q<4; q++){
+                        I=Vx[q];
+                        J=Vy[q];
+                        x=i,y=j;
+                        count=1;
+                        stuck=0;
+                        
+                        x+=I;
+                        y+=J;
+                        while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            if( board[x][y] == opponent){
+                                count++;
+                                x+=I;
+                                y+=J;
+                            }else if( board[x][y] == player){
+                                stuck++;
+                                break;
+                            }else break;
+                        }
+
+                        if(count<5){
+                            x=i,y=j;
+                            x-=I;
+                            y-=J;
+                                
+                            while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
+                            	if( board[x][y] == opponent){
+                                	count++;
+                                	x-=I;
+                                	y-=J;
+                            	}else if( board[x][y] == player){
+                                	stuck++;
+                                	break;
+                            	}else break;
+                        	}
+                        }
+                        
+                        if(stuck==2){
+                            if(count==3) h += 5;
+                            else if(count==4) h += 50;
+                            else if(count>=5) h += 125;
+                        }
+                        else if(stuck==1){
+                            if(count==3)
+                            	h -= 15;
+                            if(count==4)
+                                h -= 30;
+                            if(count>=5)
+                                h -= 125;                        
+                        }                    
+                        else{
+                            if(count==3)
+                                h -= 30;
+                            else if(count==4)
+                                h -= 125;
+                            else if(count==5)
+                                h -= 150;                                     
+                        }                
+                }    
+            }
+        }
+    }
+    return h;
+}
+
+
+
+int alphabeta(int depth, int alpha, int beta, bool maximizingPlayer,set<pair<int,int>> cur, int c){
+	if(depth == 0)      return get_h();
+
+	if(maximizingPlayer){
+		int value = INT_MIN;
+			
+		for(auto i:cur){
+            board[i.first][i.second] = player;
+
+            set<pair<int,int>> nxt(cur);
+
+            for(int rw = i.first-1; rw<=i.first+1; rw++){
+                for(int cl = i.second-1; cl<=i.second+1; cl++){
+                    if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                    }
+                }
+            }
+            nxt.erase(i);
+            int tmp = alphabeta( depth-1, alpha, beta, false, nxt, c+1);
+            if(tmp>value){
+                value = tmp;
+                if(depth==top)  play = make_pair(i.first,i.second);
+            }
+
+
+            alpha = max(alpha,value);
+            board[i.first][i.second] = EMPTY;
+            if(alpha>=beta)break;
+        }
+        
+        return value;
+	}
+    else{
+        int value = INT_MAX;
+        for(auto i:cur){
+            board[i.first][i.second] = opponent;
+
+            set<pair<int,int>> nxt(cur);
+            for(int rw = i.first-1; rw<=i.first+1; rw++){
+                for(int cl = i.second-1; cl<=i.second+1; cl++){
+                    if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                    }
+                }
+            }
+            nxt.erase(i);
+            value = min(value,alphabeta( depth-1, alpha, beta, true, nxt, c+1));
+            beta = min(beta,value);
+            board[i.first][i.second] = EMPTY;
+            if(beta<=alpha)break;
+        }
+        return value;
+
+    }
+} 
+
+
+
+void write_valid_spot(std::ofstream& fout){
+    
+    countN=0;
+	if(player == BLACK)  opponent = WHITE;
+	else opponent = BLACK;
+    set<pair<int,int>> nxt;
+    for(int i = 0; i<SIZE; i++){
+		for(int j = 0; j<SIZE; j++){
+			if(board[i][j] != EMPTY ){
+                if(board[i][j] == player )  countN++;
+                for(int rw = i-1; rw<=i+1; rw++){
+                    for(int cl = j-1; cl<=j+1; cl++){
+                        if(rw>=0 && rw<SIZE && cl>=0 && cl<SIZE && board[rw][cl] == EMPTY){
+                            nxt.insert(make_pair(rw,cl));
+                        }
+
+                    }
+                }
+            }
+		}
+	}
+    
+    if(nxt.empty()){
+        fout << rand()%15 << " " << rand()%15 << std::endl;   
+        fout.flush();
+    }
+    else{
+        alphabeta(top,INT_MIN,INT_MAX,true,nxt,countN);
+        fout << play.first << " " << play.second << std::endl; 
+        fout.flush();
+    }
+	
+}
+
+
+void read_board(std::ifstream& fin) {
+    fin >> player;
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            fin >> board[i][j];
+        }
+    }
+}
+
+
+int main(int, char** argv) {
+    std::ifstream fin(argv[1]);
+    std::ofstream fout(argv[2]);
+    read_board(fin);
+    write_valid_spot(fout);
+    fin.close();
+    fout.close();
+    return 0;
+}

@@ -22,22 +22,22 @@ int player,opponent;
 const int SIZE = 15;
 std::array<std::array<int, SIZE>, SIZE> board;
 int countN;
-int Vx[4]={1,0,1,1}; //x¦V¶q 
-int Vy[4]={1,1,0,-1}; //y¦V¶q 
+int Vx[4]={1,0,1,1}; //xå‘é‡ 
+int Vy[4]={1,1,0,-1}; //yå‘é‡ 
 pair<int ,int> play;
 
 int get_h(){
 
     int x,y;
-	int I,J; //¤è¦V 
-    int count; //¼Æ¶q 
+	int I,J; //æ–¹å‘ 
+    int count; //æ•¸é‡ 
     int stuck; //block       
     int h;
     
     for( int i=0; i<SIZE; i++){
         for( int j=0; j<SIZE; j++){
         	
-            if( board[i][j] == player ){  //¤v¤è         
+            if( board[i][j] == player ){  //å·±æ–¹         
                 for(int q=0; q<4; q++){
                     	I=Vx[q];       
                         J=Vy[q];       
@@ -45,7 +45,7 @@ int get_h(){
                         count=1;
                         stuck=0;
 
-                        //­pºâ¦P¤@¤è¦V¤Wªº¤v¤è´Ñ
+                        //è¨ˆç®—åŒä¸€æ–¹å‘ä¸Šçš„å·±æ–¹æ£‹
 						x+=I;
                         y+=J; 
                         while( x>=0 && y>=0 && x <SIZE && y<SIZE ){
@@ -59,7 +59,7 @@ int get_h(){
                             }else break;
                         }
 
-                        //­pºâ¹ï­±¤è¦V¤Wªº¤v¤è´Ñ 
+                        //è¨ˆç®—å°é¢æ–¹å‘ä¸Šçš„å·±æ–¹æ£‹ 
                         if(count<5){
                             x=i,y=j;
                             x-=I;
@@ -77,7 +77,7 @@ int get_h(){
                         	}
                         }
 
-                        // ­pºâh 
+                        // è¨ˆç®—h 
                         if(stuck==2){
                             if(count>=5)
                                 h += 50;                        
@@ -101,7 +101,7 @@ int get_h(){
                 }    
             }
 			              
-            else if(board[i][j] == opponent){  //¹ï¤â
+            else if(board[i][j] == opponent){  //å°æ‰‹
                 for(int q=0; q<4; q++){
                         I=Vx[q];
                         J=Vy[q];
